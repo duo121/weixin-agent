@@ -1,10 +1,10 @@
 {
   "name": "weixin-agent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "AI-native bridge CLI for attaching WeChat to a local Codex session",
   "repository": {
     "type": "git",
-    "url": "https://github.com/duo121/weixin-agent.git"
+    "url": "git+https://github.com/duo121/weixin-agent.git"
   },
   "bugs": {
     "url": "https://github.com/duo121/weixin-agent/issues"

@@ -1,5 +1,24 @@
 # weixin-agent 架构分层图
 
+## 0. 发布与安装
+
+`weixin-agent` 现在同时以源码仓库和 npm CLI 的形式分发：
+
+- GitHub: `https://github.com/duo121/weixin-agent`
+- npm: `https://www.npmjs.com/package/weixin-agent`
+
+安装方式：
+
+```bash
+npm install -g weixin-agent
+```
+
+这意味着：
+
+- 日常使用可以直接走全局安装的发布包
+- 本地开发时才需要使用源码目录或 `npm link`
+- 架构设计需要同时兼容“源码运行”和“全局 CLI 运行”两种入口
+
 ## 1. 目标
 
 `weixin-agent` 的目标不是再启动一个独立的 Codex 后端，而是把微信接入到**一个全局 router 和多个本地 AI 终端会话**。
@@ -176,13 +195,20 @@ connected agent session
 当前主路径命令：
 
 ```text
+weixin-agent account login
 weixin-agent start
-weixin-agent connect --session <termhub-handle>
-...
+weixin-agent connect --session <id|handle> --name <displayName>
+weixin-agent spawn codex --name <displayName>
+weixin-agent transfer --ticket <ticket-id> --to "<displayName[,displayName...]>"
 weixin-agent reply --ticket <ticket-id> --stdin
 ```
 
 这已经是当前主实现。
+
+补充说明：
+
+- `bridge start ...` 仍然存在，但只应视为旧原型路径
+- 当前公开发布的 CLI 主路径是 `account login -> start -> connect/spawn -> transfer/reply`
 
 ## 6. 当前多 Agent Router 规则
 
@@ -356,7 +382,7 @@ weixin-agent transfer --ticket <ticket-id> --to "豆包1号,豆包2号"
 - 用户回复“就叫豆包3号”，当前 agent 再显式执行 `spawn --name 豆包3号`
 - 如果它直接传 `spawn --name 豆包2号`，CLI 应直接拒绝
 
-### 6.5 状态模型
+### 6.8 状态模型
 
 router 应持久化两类状态：
 
@@ -391,7 +417,8 @@ router 应持久化两类状态：
 
 - router 已常驻
 - 当前没有在线 agent
-- 微信消息会收到“暂无在线智能体”
+- 微信消息会先尝试自动拉起一个默认 agent，再继续路由
+- 只有自动拉起失败时，微信侧才会收到明确错误
 
 ### 7.4 Router 运行中，1 个或多个连接
 
@@ -456,7 +483,7 @@ router 应持久化两类状态：
 - 这是当前默认实现
 - 输入侧已经可以稳定落地
 
-### 7.3 方案 C：后台发到同一个 Codex session
+### 8.3 方案 C：后台发到同一个 Codex session
 
 ```text
 微信 -> bridge -> 当前 Codex session
@@ -490,7 +517,7 @@ router 应持久化两类状态：
 策略：
 
 - 微信 transport 复用现有能力
-- bridge runtime 做单轮锁和事件记录
+- router runtime 维护 agent registry、ticket 状态和事件记录
 - 默认使用 terminal tty injection 把微信文本提交进当前 Codex TUI
 - 用 Codex `app-server` 读同一 thread，尽量拿到结构化输出
 

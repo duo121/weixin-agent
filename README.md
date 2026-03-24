@@ -4,6 +4,32 @@
 
 This project is intentionally separate from `../weixin-agent-sdk-main`.
 
+## Install
+
+Published package:
+
+- npm: `https://www.npmjs.com/package/weixin-agent`
+- GitHub: `https://github.com/duo121/weixin-agent`
+
+Requirements:
+
+- Node.js `>=22`
+- macOS
+- iTerm2 or Terminal for session attach / spawn workflows
+
+Install globally:
+
+```bash
+npm install -g weixin-agent
+```
+
+Quick sanity check:
+
+```bash
+weixin-agent doctor
+weixin-agent spec --compact
+```
+
 The current primary design target is:
 
 ```text
@@ -62,6 +88,26 @@ WeChat text
 Architecture notes:
 
 - [Architecture](./docs/architecture.md)
+
+## Quick Start
+
+```bash
+weixin-agent doctor
+weixin-agent account login
+weixin-agent start
+
+# attach an existing terminal AI session
+weixin-agent connect --session <id|handle> --name 豆包1号
+
+# or proactively open and connect a fresh Codex terminal
+weixin-agent spawn codex --name 豆包2号
+```
+
+Reply from the target AI terminal:
+
+```bash
+weixin-agent reply --ticket <id> --stdin
+```
 
 ## Commands
 
