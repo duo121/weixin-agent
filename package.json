@@ -1,0 +1,26 @@
+{
+  "name": "weixin-agent",
+  "version": "0.1.0",
+  "description": "AI-native bridge CLI for attaching WeChat to a local Codex session",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/duo121/weixin-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/duo121/weixin-agent/issues"
+  },
+  "homepage": "https://github.com/duo121/weixin-agent#readme",
+  "type": "module",
+  "bin": {
+    "weixin-agent": "src/cli.mjs",
+    "wxagent": "src/cli.mjs"
+  },
+  "scripts": {
+    "spec": "node ./src/cli.mjs spec",
+    "doctor": "node ./src/cli.mjs doctor",
+    "status": "node ./src/cli.mjs status"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
