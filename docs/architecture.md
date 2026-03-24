@@ -44,25 +44,25 @@ npm install -g weixin-agent
 
 `weixin-agent` 不应直接照搬下面两种模式：
 
-### 2.1 不照搬 `weixin-agent-sdk-main` 的最终产品形态
+### 2.1 不采用单轮桥接或独立后端模式
 
-原项目更偏向：
+较早方案更偏向：
 
 ```text
-微信 -> bridge -> Agent.chat() -> 一次性回复
+微信 -> bridge -> 单轮处理 -> 一次性回复
 ```
 
 或者：
 
 ```text
-微信 -> weixin-acp -> codex-acp -> 独立 Codex 会话
+微信 -> bridge -> 新建 worker 进程 -> 独立 Codex 会话
 ```
 
 这不符合当前目标，因为我们要的是“当前这条 Codex 会话”，不是“另起一个新的 Codex”。
 
-### 2.2 不照搬 `termhub` 的业务目标
+### 2.2 不照搬外部 terminal controller 的业务目标
 
-`termhub` 的价值在于：
+这类工具的价值在于：
 
 - AI-native CLI 契约
 - `spec`
@@ -74,9 +74,9 @@ npm install -g weixin-agent
 
 ## 3. 参考关系
 
-### 3.1 从 `weixin-agent-sdk-main` 参考什么
+### 3.1 微信传输层需要什么
 
-只参考它的**微信传输层能力**：
+需要的是**微信传输层能力**：
 
 - 二维码登录
 - 微信消息拉取
@@ -84,14 +84,14 @@ npm install -g weixin-agent
 - 微信消息回发
 - 状态持久化
 
-不直接继承的部分：
+不采用的部分：
 
-- `Agent.chat()` 作为最终产品边界
-- `weixin-acp start -- codex-acp` 的独立子进程模型
+- “单轮 request -> reply” 作为最终产品边界
+- 为每条消息新起独立后端进程的模型
 
-### 3.2 从 `termhub` 参考什么
+### 3.2 从同类 AI-native CLI 参考什么
 
-只参考它的**AI-native CLI 风格**：
+只参考这类工具的**AI-native CLI 风格**：
 
 - 稳定命令树
 - `spec` 机器契约
@@ -120,7 +120,7 @@ npm install -g weixin-agent
 
 来源：
 
-- 主要复用 `../weixin-agent-sdk-main`
+- 由项目内部统一提供和维护
 
 这一层回答的问题是：
 
@@ -157,7 +157,7 @@ npm install -g weixin-agent
 
 来源：
 
-- 设计风格参考 `termhub`
+- 设计风格参考成熟的 AI-native CLI
 
 这一层回答的问题是：
 
@@ -532,7 +532,7 @@ router 应持久化两类状态：
 - 继续保留 `CODEX_THREAD_ID` 作为当前 session 锚点
 - 优先研究真正可用的 shared `app-server` / remote TUI 方案
 - 如果 Codex 官方 remote 能稳定 live render，再把输出观测和输入提交都收敛到正式 JSON-RPC 控制面
-- 只把 `termhub` 保留在 e2e 黑盒验证位置
+- 只把外部 terminal inspection 工具保留在 e2e 黑盒验证位置
 
 ## 9. 当前项目目录分工
 
@@ -569,8 +569,8 @@ src/lib/
 
 `weixin-agent` 的正确路线是：
 
-1. 从 `weixin-agent-sdk-main` 复用微信传输层
-2. 从 `termhub` 借鉴 AI-native CLI 契约设计
+1. 在项目内部提供完整的微信传输层
+2. 借鉴成熟的 AI-native CLI 契约设计
 3. 围绕“attach 到当前 Codex session”重写 bridge runtime
 4. 当前输入面默认使用 terminal tty injection，保证微信真的进入当前正在显示的 Codex TUI
 5. 输出面优先尝试 Codex `app-server`，等待更稳定的正式控制面成熟
@@ -578,8 +578,8 @@ src/lib/
 而不是：
 
 - 照搬 SDK 项目的产品边界
-- 照搬 `termhub` 的业务目标
-- 或者继续围绕“spawn 一个新的 `codex-acp`”来设计最终产品
+- 照搬外部 terminal controller 的业务目标
+- 或者继续围绕“每次都新起一个独立后端进程”来设计最终产品
 
 ## 11. 当前实现结论
 

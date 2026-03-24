@@ -222,7 +222,7 @@ export async function runDoctor() {
     checks.push(makeCheck(
       "router.runtimeConflict",
       "warn",
-      "A legacy .openclaw router is still alive. Stop it and keep only the ~/.weixin-agent router.",
+      "A legacy router from an older state directory is still alive. Stop it and keep only the ~/.weixin-agent router.",
       {
         legacyRuntime,
         currentRuntime,

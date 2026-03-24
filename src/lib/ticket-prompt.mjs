@@ -154,6 +154,15 @@ export function buildTransferCommand({
   return `${buildPromptCliPrefix()} transfer --ticket ${shellQuote(ticketId)} --to ${shellQuote(targetNames)}`;
 }
 
+export function buildSpawnCommand({
+  cliPath = process.argv[1],
+  nodePath = process.execPath,
+  kind,
+  targetName,
+}) {
+  return `${buildPromptCliPrefix()} spawn ${shellQuote(kind)} --name ${shellQuote(targetName)}`;
+}
+
 export function buildRecoverCommand({
   cliPath = process.argv[1],
   nodePath = process.execPath,
@@ -179,6 +188,18 @@ export function buildStableAgentPrompt({
     nodePath,
     targetName: "<offline-agent>",
   });
+  const spawnCodexCommand = buildSpawnCommand({
+    cliPath,
+    nodePath,
+    kind: "codex",
+    targetName: "<new-agent>",
+  });
+  const spawnClaudeCommand = buildSpawnCommand({
+    cliPath,
+    nodePath,
+    kind: "claude",
+    targetName: "<new-agent>",
+  });
   const mediaReplyExample = buildMediaReplyExample({
     cliPath,
     nodePath,
@@ -203,7 +224,13 @@ export function buildStableAgentPrompt({
     "- If the inline-mentioned agent does not exist, do not invent a result on its behalf; tell the user it does not exist or suggest creating it.",
     "- If the user message contains work for both you and another agent, first decompose the tasks, then handle your part and delegate the other part deliberately.",
     "- If this ticket should be handled by another connected agent instead of you, transfer it instead of replying from the wrong identity.",
+    "- If the user explicitly asks to create or open another agent and provides a full unique display name, use spawn for that new agent.",
+    "- spawn already opens a new terminal session, starts codex/claude there, and connects that new agent into the router.",
+    "- If the user wants a new agent but has not chosen a full unique display name yet, ask for the name before spawning.",
+    "- If spawn/recover fails because terminal automation or session resolution is unavailable, explain the environment issue first instead of pretending the new agent was created.",
     `- If the needed agent is currently offline, you can reopen it first: ${recoverCommand}`,
+    `- To create a new Codex agent with an explicit name, use: ${spawnCodexCommand}`,
+    `- To create a new Claude agent with an explicit name, use: ${spawnClaudeCommand}`,
     `- To send a local or remote image/file/video back to WeChat, use reply --ticket ... --media <path-or-url>. Example: ${mediaReplyExample}`,
     "- After a successful transfer, do not call reply for that ticket from this terminal.",
   ].join("\n");
@@ -230,6 +257,12 @@ export function buildInjectedPrompt({
     nodePath,
     ticketId: ticket.id,
     targetNames: "<target-a>,<target-b>",
+  });
+  const spawnCodexCommand = buildSpawnCommand({
+    cliPath,
+    nodePath,
+    kind: "codex",
+    targetName: "<new-agent>",
   });
   const recoverCommand = buildRecoverCommand({
     cliPath,
@@ -273,6 +306,7 @@ export function buildInjectedPrompt({
     ...formatInboundAttachmentLines(ticket),
     "",
     "Tool commands:",
+    `- spawn: ${spawnCodexCommand}`,
     `- transfer: ${singleTransferCommand.replace("<target-agent>", "<target-agent[,target-agent...]>")}`,
     `- recover: ${recoverCommand}`,
     `- media: ${mediaReplyExample}`,

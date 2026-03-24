@@ -272,7 +272,7 @@ export function buildSpec() {
       stop: {
         maturity: "implemented",
         usage: "weixin-agent stop [--compact]",
-        purpose: "Stop every currently running global router daemon that this CLI can detect, including legacy .openclaw router runtimes.",
+        purpose: "Stop every currently running global router daemon that this CLI can detect, including legacy router runtimes from older state directories.",
       },
       bridge: {
         purpose: "Plan and manage the local bridge controller.",

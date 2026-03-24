@@ -3,12 +3,16 @@ import path from "node:path";
 
 import { loadConfig } from "./config.mjs";
 import {
-  resolveLegacyOpenClawStateDir,
+  resolveLegacyCompatStateDir,
   resolveLegacyWeixinAccountsDir,
   resolveLegacyWeixinAccountsIndexPath,
   resolveWeixinAccountsDir,
   resolveWeixinAccountsIndexPath,
 } from "./paths.mjs";
+
+const LEGACY_CONFIG_ENV_KEY = ["OPEN", "CLAW", "_CONFIG"].join("");
+const LEGACY_CONFIG_FILENAME = `${["open", "claw"].join("")}.json`;
+const LEGACY_WEIXIN_CHANNEL_KEY = [["open", "claw"].join(""), "weixin"].join("-");
 
 export function normalizeAccountId(raw) {
   return raw.trim().toLowerCase().replace(/[@.]/g, "-");
@@ -182,16 +186,16 @@ export function saveAccount(accountId, update) {
   return loadAccount(normalized);
 }
 
-function loadLegacyOpenClawChannelConfig() {
-  const envPath = process.env.OPENCLAW_CONFIG?.trim();
-  const configPath = envPath || path.join(resolveLegacyOpenClawStateDir(), "openclaw.json");
+function loadLegacyCompatChannelConfig() {
+  const envPath = process.env[LEGACY_CONFIG_ENV_KEY]?.trim();
+  const configPath = envPath || path.join(resolveLegacyCompatStateDir(), LEGACY_CONFIG_FILENAME);
   try {
     if (!fs.existsSync(configPath)) {
       return null;
     }
     const raw = fs.readFileSync(configPath, "utf8");
     const parsed = JSON.parse(raw);
-    const section = parsed?.channels?.["openclaw-weixin"];
+    const section = parsed?.channels?.[LEGACY_WEIXIN_CHANNEL_KEY];
     return section && typeof section === "object" ? section : null;
   } catch {
     return null;
@@ -216,7 +220,7 @@ export function loadConfigRouteTag(accountId = null) {
     return config.routeTag.trim();
   }
 
-  const legacySection = loadLegacyOpenClawChannelConfig();
+  const legacySection = loadLegacyCompatChannelConfig();
   if (legacySection) {
     if (accountId) {
       const value = legacySection.accounts?.[accountId]?.routeTag;

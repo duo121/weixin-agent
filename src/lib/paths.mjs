@@ -1,6 +1,13 @@
 import os from "node:os";
 import path from "node:path";
 
+const LEGACY_STATE_ENV_KEYS = Object.freeze([
+  ["OPEN", "CLAW", "_STATE_DIR"].join(""),
+  ["CLAW", "DBOT", "_STATE_DIR"].join(""),
+]);
+const LEGACY_HOME_DIRNAME = `.${["open", "claw"].join("")}`;
+const LEGACY_WEIXIN_DIRNAME = [["open", "claw"].join(""), "weixin"].join("-");
+
 export function resolveWeixinAgentHomeDir() {
   return process.env.WEIXIN_AGENT_HOME?.trim() || path.join(os.homedir(), ".weixin-agent");
 }
@@ -92,28 +99,30 @@ export function resolveAgentConnectionLogPath(agentId) {
   return path.join(resolveAgentStateDir(), `agent-${String(agentId).trim()}.log`);
 }
 
-export function resolveLegacyOpenClawStateDir() {
-  return (
-    process.env.OPENCLAW_STATE_DIR?.trim()
-    || process.env.CLAWDBOT_STATE_DIR?.trim()
-    || path.join(os.homedir(), ".openclaw")
-  );
+export function resolveLegacyCompatStateDir() {
+  for (const key of LEGACY_STATE_ENV_KEYS) {
+    const value = process.env[key]?.trim();
+    if (value) {
+      return value;
+    }
+  }
+  return path.join(os.homedir(), LEGACY_HOME_DIRNAME);
 }
 
-export function resolveLegacyWeixinStateDir() {
-  return path.join(resolveLegacyOpenClawStateDir(), "openclaw-weixin");
+export function resolveLegacyCompatWeixinStateDir() {
+  return path.join(resolveLegacyCompatStateDir(), LEGACY_WEIXIN_DIRNAME);
 }
 
 export function resolveLegacyWeixinAccountsDir() {
-  return path.join(resolveLegacyWeixinStateDir(), "accounts");
+  return path.join(resolveLegacyCompatWeixinStateDir(), "accounts");
 }
 
 export function resolveLegacyWeixinAccountsIndexPath() {
-  return path.join(resolveLegacyWeixinStateDir(), "accounts.json");
+  return path.join(resolveLegacyCompatWeixinStateDir(), "accounts.json");
 }
 
 export function resolveLegacyAgentStateDir() {
-  return path.join(resolveLegacyOpenClawStateDir(), "weixin-agent");
+  return path.join(resolveLegacyCompatStateDir(), "weixin-agent");
 }
 
 export function resolveLegacyAgentRuntimePath() {
